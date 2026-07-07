@@ -2497,7 +2497,7 @@
                             }
                         </style>
                         <div id="grid-popup-menu" style="display: none; position: absolute; bottom: 65px; left: 12px; background: #f4f5f7; border: 1px solid #dcdfe3; border-radius: 12px; padding: 8px 0; box-shadow: 0 4px 14px rgba(0,0,0,0.15); width: 240px; z-index: 100; font-size: 0.85rem; color: #222; font-weight: 500;">
-                            <div class="popup-menu-item">
+                            <div class="popup-menu-item" onclick="document.getElementById('support-package-modal').style.display='flex'; document.getElementById('grid-popup-menu').style.display='none';">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10.5 17.5L8 18l.5-2.5L13 11l2 2-4.5 4.5z"/></svg>
                                 서포트패키지
                             </div>
@@ -2534,6 +2534,154 @@
                                     style="color:#adb5bd; font-size: 0.8rem; margin-left: 4px; cursor:pointer;">🎤</span>
                             </div>
                             <span class="bottom-icon" style="font-weight: bold;">|||</span>
+                        </div>
+
+                        <!-- 서포트패키지 모달 화면 -->
+                        <style>
+                            .support-modal {
+                                position: absolute;
+                                top: 0; left: 0; width: 100%; height: 100%;
+                                background-color: #fff;
+                                z-index: 200;
+                                display: none;
+                                flex-direction: column;
+                                border-radius: 16px;
+                                overflow: hidden;
+                            }
+                            .support-modal-header {
+                                display: flex;
+                                align-items: center;
+                                padding: 12px 16px;
+                                border-bottom: 1px solid #eee;
+                            }
+                            .support-modal-back {
+                                cursor: pointer;
+                                font-size: 1.2rem;
+                                color: #333;
+                                margin-right: 12px;
+                            }
+                            .support-modal-title {
+                                font-size: 0.85rem;
+                                font-weight: 700;
+                                color: #e60023;
+                                text-align: center;
+                                flex: 1;
+                                margin-right: 24px;
+                            }
+                            .support-modal-body {
+                                flex: 1;
+                                padding: 16px;
+                                overflow-y: auto;
+                                font-size: 0.8rem;
+                            }
+                            .support-form-group {
+                                margin-bottom: 16px;
+                            }
+                            .support-form-label {
+                                display: block;
+                                font-weight: 700;
+                                margin-bottom: 6px;
+                                color: #333;
+                                font-size: 0.75rem;
+                            }
+                            .support-form-label span { color: #e60023; }
+                            .support-form-input, .support-form-select {
+                                width: 100%;
+                                padding: 10px 12px;
+                                border: 1px solid #ddd;
+                                border-radius: 8px;
+                                box-sizing: border-box;
+                                font-size: 0.8rem;
+                                color: #555;
+                                background-color: #fafafa;
+                            }
+                            .support-form-select {
+                                appearance: none;
+                                background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23333%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+                                background-repeat: no-repeat;
+                                background-position: right 12px center;
+                            }
+                            .support-input-with-icon {
+                                position: relative;
+                            }
+                            .support-input-with-icon input {
+                                padding-right: 36px;
+                            }
+                            .support-input-icon {
+                                position: absolute;
+                                right: 12px;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                color: #999;
+                                font-size: 1rem;
+                            }
+                            .support-modal-footer {
+                                display: flex;
+                                padding: 12px 16px;
+                                gap: 12px;
+                                border-top: 1px solid #eee;
+                            }
+                            .support-btn-close {
+                                flex: 1;
+                                padding: 12px 0;
+                                text-align: center;
+                                background: #fff;
+                                border: 1px solid #ddd;
+                                border-radius: 8px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                color: #333;
+                            }
+                            .support-btn-search {
+                                flex: 2;
+                                padding: 12px 0;
+                                text-align: center;
+                                background: linear-gradient(90deg, #ff6b00, #e60023);
+                                border: none;
+                                border-radius: 8px;
+                                font-weight: 700;
+                                color: #fff;
+                                cursor: pointer;
+                            }
+                        </style>
+                        <div id="support-package-modal" class="support-modal">
+                            <div class="support-modal-header">
+                                <span class="support-modal-back" onclick="document.getElementById('support-package-modal').style.display='none'">&lt;</span>
+                                <div class="support-modal-title">제품/모델/증상명을 입력하세요</div>
+                            </div>
+                            <div class="support-modal-body">
+                                <div class="support-form-group">
+                                    <label class="support-form-label">제품군 <span>*</span></label>
+                                    <select class="support-form-select">
+                                        <option>제품군을 선택하세요</option>
+                                    </select>
+                                </div>
+                                <div class="support-form-group">
+                                    <label class="support-form-label">제품명 <span>*</span></label>
+                                    <select class="support-form-select">
+                                        <option>제품명을 선택하세요</option>
+                                    </select>
+                                </div>
+                                <div class="support-form-group">
+                                    <label class="support-form-label">증상 <span>*</span></label>
+                                    <div class="support-input-with-icon">
+                                        <input type="text" class="support-form-input" placeholder="증상을 선택하세요">
+                                        <span class="support-input-icon">🔍</span>
+                                    </div>
+                                </div>
+                                <div class="support-form-group">
+                                    <label class="support-form-label">제조번호</label>
+                                    <input type="text" class="support-form-input" placeholder="제조번호를 입력하세요">
+                                </div>
+                                <div class="support-form-group">
+                                    <label class="support-form-label">모델명</label>
+                                    <input type="text" class="support-form-input" placeholder="모델명을 입력하세요.">
+                                </div>
+                            </div>
+                            <div class="support-modal-footer">
+                                <div class="support-btn-close" onclick="document.getElementById('support-package-modal').style.display='none'">닫기</div>
+                                <div class="support-btn-search">조회</div>
+                            </div>
                         </div>
                     </div>
                 </div>
