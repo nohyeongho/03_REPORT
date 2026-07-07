@@ -1,0 +1,3132 @@
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Package 진행사항_Pilot 오픈</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        :root {
+            --primary-color: #A50034;
+            /* LG Red */
+            --text-main: #222222;
+            --text-muted: #555555;
+            --bg-body: #e9ecef;
+            --bg-card: #ffffff;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-body);
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 16:9 컨테이너 설정 */
+        .report-container {
+            width: 1600px;
+            height: 900px;
+            background-color: #ffffff;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            padding: 1.8rem 4rem 2rem 4rem;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            /* transform은 JS adjustScale() 에서 translate + scale 로 일괄 제어 */
+        }
+
+        /* 다음장 넘어가는 우측 내비게이션 화살표 */
+        .next-page-arrow {
+            position: absolute;
+            right: 1.5rem;
+            top: 52%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            opacity: 0.65;
+            padding: 10px;
+            /* 클릭 감지 영역 대폭 개선 */
+        }
+
+        .next-page-arrow:hover {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.12);
+        }
+
+        .next-page-arrow:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        /* 상단 헤더 */
+        .header {
+            border-bottom: 3px solid #111;
+            padding-bottom: 0.8rem;
+            /* 밑줄과의 내부 여백을 0.8rem으로 축소 */
+            margin-bottom: 1.2rem;
+            /* 본문 영역과의 간격을 1.2rem으로 줄여 전체적으로 뷰를 윗방향으로 견인 */
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        /* 본문 영역 분할 */
+        .content-wrapper {
+            display: flex;
+            gap: 4rem;
+            flex: 1;
+            height: calc(100% - 100px);
+        }
+
+        /* 왼쪽 이미지 영역 */
+        .left-column {
+            flex: 0 0 35%;
+            /* 좌측 폰 화면 영역 전체를 큼직하게 35%로 조정 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            /* 팝업이 phone-mockup의 overflow:hidden에 클리핑되지 않도록
+               외부 기준점으로 취급 - 팝업은 left-column 위에 덮게 된다 */
+            position: relative;
+            overflow: visible;
+        }
+
+        .left-column img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            /* 저해상도 이미지가 강제 확대될 때 외곽선 뭉개짐(뿌옇게 변함)을 방지하고 선명도를 개선하는 스타일 */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        /* 오른쪽 텍스트 영역 */
+        .right-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 0.5rem;
+        }
+
+        .main-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .main-desc {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 1.2rem;
+            line-height: 1.5;
+            word-break: keep-all;
+            padding-left: 0.5rem;
+        }
+
+        /* 카드 그리드 레이아웃 */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            /* 1.5rem -> 0.8rem으로 컴팩트화 */
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 1rem;
+            /* 1.5rem -> 1rem으로 줄여 900px 세로 비율 내 안정적 안착 */
+            border-top: 4px solid var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.7rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-title::before {
+            content: '✓';
+            color: var(--primary-color);
+            margin-right: 8px;
+            font-weight: 900;
+        }
+
+        .feature-list {
+            margin: 0;
+            padding-left: 1.2rem;
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .feature-list li {
+            margin-bottom: 0.4rem;
+            word-break: keep-all;
+        }
+
+        .feature-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 전체 화면 모드 진입 시 보고서 컨테이너의 스타일 */
+        .report-container:fullscreen {
+            max-width: none !important;
+            max-height: none !important;
+            border-radius: 16px !important;
+            /* 스케일링되므로 모서리 둥글기 유지 */
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+            margin: 0 !important;
+        }
+
+        .report-container:-webkit-full-screen {
+            max-width: none !important;
+            max-height: none !important;
+            border-radius: 16px !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+            margin: 0 !important;
+        }
+
+        /* 전체 화면 시 뒷배경(여백)을 자연스러운 회색으로 일치시킴 */
+        .report-container::backdrop {
+            background-color: var(--bg-body) !important;
+        }
+
+        /* -----------------------------------------
+           스마트폰 모형 (Phone Mockup) 전용 CSS
+           ----------------------------------------- */
+        .phone-mockup {
+            width: 100%;
+            height: 100%;
+            max-height: 650px;
+            max-width: 340px;
+            aspect-ratio: 9 / 19;
+            background-color: #ffffff;
+            border: 6px solid #222222;
+            border-radius: 28px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+            /* overflow:hidden으로 폰 모서리 클리핑 유지.
+               팝업은 내부 요소를 z-index:300으로 덮어쓰므로 전체적으로 문제없음 */
+            overflow: hidden;
+            font-family: 'Pretendard', -apple-system, sans-serif !important;
+        }
+
+        .phone-mockup * {
+            box-sizing: border-box;
+            letter-spacing: -0.01em;
+            /* 자간이 너무 붙어 가독성이 깨지던 현상 개선 */
+            font-family: 'Pretendard', -apple-system, sans-serif !important;
+            /* 모든 모형 텍스트에 프리텐다드 강제 적용 */
+        }
+
+        /* 1. 상단 타이틀바 */
+        .phone-header {
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+            border-bottom: 1px solid #f1f3f5;
+            font-size: 0.75rem;
+            position: relative;
+            /* 팝업의 absolute 기준점이 되도록 설정 */
+        }
+
+        .phone-header .left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .phone-header .left .menu-icon {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .phone-header .left .badge-red-new {
+            background-color: #ff334b;
+            color: #ffffff;
+            font-size: 0.52rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            line-height: 1;
+            transform: scale(0.9);
+            display: inline-block;
+        }
+
+        .phone-header .left .header-chat-title {
+            font-weight: 700;
+            color: #111;
+        }
+
+        .phone-header .right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #555;
+        }
+
+        .phone-header .right .qa-btn {
+            border: 1px solid #e9ecef;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #495057;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .phone-header .right .qa-btn .badge-new-small {
+            color: #e60023;
+            font-size: 0.55rem;
+            font-weight: 800;
+        }
+
+        .phone-header .right .icon-gear,
+        .phone-header .right .icon-bell {
+            font-size: 0.85rem;
+            color: #adb5bd;
+            /* 좀 더 연하고 고급스러운 톤으로 조정 */
+        }
+
+        /* 2. 서브 헤더 (정보 영역) */
+        .phone-sub-header {
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+            font-size: 0.72rem;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .phone-sub-header .left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 700;
+            color: #343a40;
+        }
+
+        .phone-sub-header .right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #495057;
+            font-weight: 700;
+        }
+
+        /* 3. 스크롤 가능한 본문 영역 */
+        .phone-content {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background-color: #ffffff;
+        }
+
+        .phone-content::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .phone-content::-webkit-scrollbar-thumb {
+            background: #e9ecef;
+            border-radius: 2px;
+        }
+
+        /* 접수 태그 정보 */
+        .issue-tag-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+        }
+
+        .issue-tag {
+            background: linear-gradient(135deg, #e60045 0%, #7a3fff 100%);
+            color: #ffffff;
+            padding: 7px 12px;
+            border-radius: 16px 16px 2px 16px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            word-break: keep-all;
+            text-align: right;
+            box-shadow: 0 4px 10px rgba(230, 0, 69, 0.1);
+        }
+
+        .issue-time {
+            font-size: 0.62rem;
+            color: #adb5bd;
+        }
+
+        /* AI 브리핑 카드 */
+        .ai-briefing-card {
+            border: 2px solid transparent;
+            /* 테두리를 조금 더 선명하게 */
+            border-radius: 18px;
+            background-image: linear-gradient(#fff, #fff), linear-gradient(135deg, #ff8da1 0%, #a38cf4 100%);
+            background-origin: border-box;
+            /* content-box에서 padding-box로 변경하여 카드 안쪽 패딩 영역이 보라색으로 가득 차던 버그 수정 */
+            background-clip: padding-box, border-box;
+            padding: 16px 14px;
+            /* 여백을 넓혀 시각적 안정성 확보 */
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            /* 갭을 늘려 여유 배치 */
+            box-shadow: 0 6px 18px rgba(163, 140, 244, 0.06);
+        }
+
+        .ai-briefing-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f3f5;
+            padding-bottom: 8px;
+        }
+
+        .ai-briefing-card .card-header .card-title {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.88rem;
+        }
+
+        .ai-briefing-card .card-header .card-title .title-text {
+            font-weight: 800;
+            background: linear-gradient(to right, #ff4e72, #7a3fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .ai-briefing-card .card-header .voice-btn {
+            background-color: #8e959c;
+            color: #ffffff;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* 카드 헤더 버튼 그룹 정렬 */
+        .card-header-btns {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        /* Deep research AI 테마 마젠타 그라데이션 버튼 */
+        .ai-briefing-card .card-header .deep-research-btn {
+            background: linear-gradient(135deg, #7a3fff 0%, #ff4e72 100%);
+            color: #ffffff;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(122, 63, 255, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        .ai-briefing-card .card-header .deep-research-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(122, 63, 255, 0.35);
+        }
+
+        .ai-briefing-card .card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            /* 섹션 간 갭을 넓혀 가독성 향상 */
+        }
+
+        .ai-briefing-card .card-body .section {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            /* 확대 및 하이라이트 변경 시 부드럽게 스무스 애니메이션 작동 */
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+            transform-origin: center center;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 6px;
+            margin: -6px;
+            /* 평소 레이아웃 마진 상쇄 */
+        }
+
+        /* 우측 보고서 feature-card 클릭 시 대응하여 조금 확대되고 하이라이트된 상태 */
+        .ai-briefing-card .card-body .section.highlighted {
+            transform: scale(1.04) !important;
+            box-shadow: 0 6px 16px rgba(138, 79, 255, 0.12) !important;
+            border-color: rgba(138, 79, 255, 0.3) !important;
+            background-color: #fbf9ff !important;
+            z-index: 10;
+            position: relative;
+        }
+
+        .ai-briefing-card .card-body .section-title {
+            font-size: 0.86rem;
+            /* 더 선명하게 제목 크기를 0.86rem으로 확대 */
+            font-weight: 800;
+            color: #111111;
+            /* 선명한 블랙으로 명도 대비 및 판독성 극대화 */
+            border-left: 3px solid #8a4fff;
+            /* 포인트 데코 바 강화 */
+            padding-left: 6px;
+            line-height: 1.1;
+        }
+
+        .ai-briefing-card .card-body .section-desc {
+            font-size: 0.75rem;
+            /* 설명 글씨 크기를 0.75rem으로 한 단계 낮추어 균형감 확보 */
+            color: #2b2b2b;
+            /* 더 어두운 회색으로 명도 대비 강화 */
+            line-height: 1.55;
+            /* 줄 간격을 1.4에서 1.55로 늘려 가독성 획기적 개선 */
+            margin: 0;
+            padding-left: 9px;
+            word-break: keep-all;
+        }
+
+        /* 각 AI 브리핑 섹션의 타이틀과 접기 버튼 정렬을 위한 헤더 스타일 */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        /* 접기/펼치기 커스텀 연회색 아웃라인 버튼 */
+        .section-toggle-btn {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            color: #8e959c;
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            line-height: 1;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .section-toggle-btn:hover {
+            background-color: #f8f9fa;
+            border-color: #cbd5e0;
+            color: #4a5568;
+        }
+
+        .ai-briefing-card .card-footer {
+            display: flex;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #ff4e72;
+            padding-top: 6px;
+            border-top: 1px solid #f1f3f5;
+            cursor: pointer;
+        }
+
+        /* 페이지 인디케이터 */
+        .page-dots {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 2px 0;
+        }
+
+        .page-dots .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: #dee2e6;
+        }
+
+        .page-dots .dot.active {
+            background-color: #ff334b;
+            width: 5px;
+            /* 길쭉한 바에서 원형 점으로 복구 */
+            height: 5px;
+            border-radius: 50%;
+        }
+
+        /* 하단 가로스크롤 단축 탭 */
+        .shortcut-tabs {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 2px 0 4px 0;
+        }
+
+        .shortcut-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .shortcut-tabs .tab {
+            white-space: nowrap;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            background-color: #ffffff;
+            cursor: pointer;
+        }
+
+        .shortcut-tabs .tab.active {
+            background: linear-gradient(135deg, #ff3344 0%, #e60023 100%);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 3px 8px rgba(230, 0, 35, 0.12);
+        }
+
+        /* 4. 최하단 입력/푸터바 */
+        .phone-footer {
+            padding: 10px 12px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #f1f3f5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .phone-footer .icon-grid {
+            font-size: 1.1rem;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        .phone-footer .icon-camera {
+            font-size: 1rem;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        .phone-footer .search-input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .phone-footer .search-input-wrapper input {
+            width: 100%;
+            padding: 6px 30px 6px 10px;
+            border-radius: 16px;
+            border: 1px solid #ced4da;
+            font-size: 0.72rem;
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .phone-footer .search-input-wrapper .icon-mic {
+            position: absolute;
+            right: 10px;
+            color: #495057;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .phone-footer .icon-wave {
+            font-size: 0.9rem;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        /* 3x3 격자 아이콘 CSS 구현 */
+        .grid-icon {
+            display: grid;
+            grid-template-columns: repeat(3, 3px);
+            gap: 2px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .grid-icon span {
+            width: 3px;
+            height: 3px;
+            background-color: #495057;
+            border-radius: 50%;
+        }
+
+        /* 오색 보이스 파형 아이콘 CSS 구현 */
+        .voice-wave-container {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .voice-wave-container .bar {
+            width: 2px;
+            border-radius: 1px;
+        }
+
+        .voice-wave-container .bar1 {
+            height: 8px;
+            background-color: #3b5bdb;
+        }
+
+        .voice-wave-container .bar2 {
+            height: 14px;
+            background-color: #e60023;
+        }
+
+        .voice-wave-container .bar3 {
+            height: 10px;
+            background-color: #fab005;
+        }
+
+        .voice-wave-container .bar4 {
+            height: 12px;
+            background-color: #2b8a3e;
+        }
+
+        /* ------------------------------------------
+           설정 팝업 (⚙️ 클릭 시 나타나는 드롭다운)
+           -- phone-mockup 내부에서만 표시되므로
+              position: absolute 기준을 .phone-mockup으로 잡음
+           ------------------------------------------ */
+        /* settings-popup: position:fixed로 overflow의 클리핑에서 완전히 자유로웈지으로
+           JS에서 getBoundingClientRect()로 ⚙️ 버튼의 실제 화면 좌표를 계산해 정확히 배치 */
+        .settings-popup {
+            /* 평소엔 숨김, JS에서 .visible 클래스로 표시 전환 */
+            display: none;
+            position: absolute;
+            /* fixed에서 absolute로 변경하여 transform 스케일링 버그 예방 */
+            top: 36px;
+            /* ⚙️ 아이콘 바로 아래 배치 */
+            right: 8px;
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #e9ecef;
+            border-radius: 14px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+            padding: 10px 0;
+            min-width: 160px;
+            font-family: 'Pretendard', -apple-system, sans-serif !important;
+        }
+
+        /* .visible 클래스가 붙으면 팝업 노출 */
+        .settings-popup.visible {
+            display: block;
+            /* 부드럽게 나타나는 애니메이션 */
+            animation: fadeInDown 0.18s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 팝업 내 헤더 타이틀 */
+        .settings-popup .popup-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #adb5bd;
+            padding: 0 14px 6px 14px;
+            border-bottom: 1px solid #f1f3f5;
+            margin-bottom: 4px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        /* 팝업 각 행(항목) */
+        .settings-popup .popup-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 14px;
+            gap: 16px;
+        }
+
+        .settings-popup .popup-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* 항목 레이블 */
+        .settings-popup .popup-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #222;
+        }
+
+        /* iOS 스타일 토글 스위치 */
+        .toggle-switch {
+            position: relative;
+            width: 34px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* 실제 체크박스는 숨기고 label로 조작 */
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        /* 토글 트랙(배경 바) */
+        .toggle-switch .track {
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background-color: #dee2e6;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        /* 토글 원형 핸들 */
+        .toggle-switch .track::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+            transition: transform 0.2s ease;
+        }
+
+        /* 체크 상태(ON)일 때: 트랙을 파란색으로, 핸들을 오른쪽으로 이동 */
+        .toggle-switch input:checked+.track {
+            background-color: #1971c2;
+        }
+
+        .toggle-switch input:checked+.track::after {
+            transform: translateX(14px);
+        }
+
+        /* ------------------------------------------
+           우측 하단 개인화 영역 (추가 기능 소개)
+           ------------------------------------------ */
+        .personalization-section {
+            margin-top: 1rem;
+            /* 1.8rem -> 1rem으로 마진 축소 */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            /* feature-card의 상단 두꺼운 테두리 및 디자인을 그대로 적용 받음 */
+        }
+
+        .personalization-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .personalization-preview {
+            flex: 0 0 170px;
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            padding: 8px 0;
+            display: flex;
+            flex-direction: column;
+            /* 설명용 프리뷰이지만 사용자가 클릭하여 동작할 수 있도록 pointer-events 제거 */
+        }
+
+        .personalization-preview .popup-title {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: #adb5bd;
+            padding: 0 12px 4px 12px;
+            border-bottom: 1px solid #f1f3f5;
+            margin-bottom: 3px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .personalization-preview .popup-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 12px;
+            gap: 12px;
+        }
+
+        .personalization-preview .popup-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        /* ------------------------------------------
+           멀티턴 이미지 팝업 모달 (report-container 내부 absolute 안착으로 transform 스케일 버그 해결)
+           ------------------------------------------ */
+        .multiturn-modal {
+            display: flex;
+            /* 레이아웃 정렬을 위해 항상 flex 유지 */
+            position: absolute;
+            /* fixed에서 absolute로 변경하여 부모의 transform scale() 축소 비율에 완벽 연동 */
+            z-index: 1000;
+            /* 보고서 최상단에 배치 */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            border-radius: 16px;
+            /* 부모(.report-container) 모서리 둥글기와 일치 */
+
+            /* visibility와 opacity를 연동하여 안전하고 매끄러운 페이드 효과 연출 */
+            visibility: hidden;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .multiturn-modal.visible {
+            visibility: visible;
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        /* ------------------------------------------
+           다중 페이지 슬라이드용 레이아웃 및 내비게이션
+           ------------------------------------------ */
+        .slide-page {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .slide-page.active {
+            display: flex;
+        }
+
+        /* 이전장 넘어가는 좌측 내비게이션 화살표 */
+        .prev-page-arrow {
+            position: absolute;
+            left: 1.5rem;
+            top: 52%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            opacity: 0.65;
+            padding: 10px;
+        }
+
+        .prev-page-arrow:hover {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.12);
+        }
+
+        .prev-page-arrow:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .multiturn-modal .modal-content {
+            position: relative;
+            background-color: #ffffff;
+            padding: 12px;
+            border-radius: 16px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+            max-width: 90%;
+            /* % 단위로 변경하여 1600px 내부에 깔끔히 제한 */
+            max-height: 85%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalScaleUp {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .multiturn-modal .modal-content img {
+            max-width: 100%;
+            max-height: 780px;
+            /* 세로 해상도 900px 한계 내로 정확히 제어 */
+            border-radius: 10px;
+            object-fit: contain;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .multiturn-modal .close-modal {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 32px;
+            height: 32px;
+            background-color: #ffffff;
+            color: #333333;
+            border: 1px solid #dee2e6;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+            z-index: 10001;
+        }
+
+        .multiturn-modal .close-modal:hover {
+            background-color: #f1f3f5;
+            color: #A50034;
+            /* LG Red 포인트 매칭 */
+            transform: scale(1.08);
+        }
+
+        /* ------------------------------------------
+           [Page 2] 신규 모바일 목업 전용 CSS 스타일
+           ------------------------------------------ */
+        .phone-card-simple {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            /* 테두리 두께 및 배경 부드러운 하이라이트 트랜지션 정의 */
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+        }
+
+        /* 우측 카드 클릭 대응 강조 효과 */
+        .phone-card-simple.highlighted {
+            transform: scale(1.04) !important;
+            box-shadow: 0 6px 16px rgba(165, 0, 52, 0.12) !important;
+            border-color: rgba(165, 0, 52, 0.3) !important;
+            background-color: #fffafb !important;
+            z-index: 10;
+            position: relative;
+        }
+
+        .phone-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .phone-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* LG 로고 뱃지 스타일 (둥근 사각형 투톤) */
+        .phone-card-logo-lg {
+            width: 18px;
+            height: 18px;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .phone-card-logo-lg .top-text {
+            flex: 1;
+            background-color: #ffffff;
+            color: #0066cc;
+            font-size: 5px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            letter-spacing: -0.05em;
+            transform: scale(0.9);
+        }
+
+        .phone-card-logo-lg .bottom-text {
+            flex: 1;
+            background-color: #A50034;
+            color: #ffffff;
+            font-size: 5px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            letter-spacing: -0.05em;
+            transform: scale(0.9);
+        }
+
+        /* Argus 로고 뱃지 스타일 (둥근 사각형 눈 아이콘) */
+        .phone-card-logo-argus {
+            width: 18px;
+            height: 18px;
+            background-color: #ff3b30;
+            /* 밝은 빨간색 */
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .phone-card-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #111111;
+        }
+
+        .phone-card-tag-green {
+            background-color: #e6fcf5;
+            color: #0ca678;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 4px;
+            line-height: 1;
+        }
+
+        .phone-card-tag-pink {
+            background-color: #fff0f6;
+            color: #d6336c;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            line-height: 1;
+            align-self: flex-start;
+        }
+
+        .phone-card-desc {
+            font-size: 0.82rem;
+            color: #495057;
+            line-height: 1.45;
+            margin: 0;
+            word-break: keep-all;
+        }
+
+        .phone-card-btn-toggle {
+            background-color: #f1f3f5;
+            border: none;
+            border-radius: 8px;
+            color: #495057;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 6px;
+            cursor: pointer;
+        }
+
+        .phone-card-info-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #111111;
+            border-left: 3px solid #ff4e72;
+            padding-left: 6px;
+            margin-bottom: 6px;
+            margin-top: 4px;
+        }
+
+        /* 폰 해상도 한계에 맞춘 컴팩트 테이블 스타일 */
+        .phone-table-container {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+
+        .phone-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.68rem;
+            text-align: center;
+        }
+
+        .phone-table th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 700;
+            padding: 4px;
+            border-bottom: 1px solid #dee2e6;
+            border-right: 1px solid #e9ecef;
+            white-space: nowrap;
+        }
+
+        .phone-table th:last-child {
+            border-right: none;
+        }
+
+        .phone-table td {
+            padding: 4px 2px;
+            color: #212529;
+            border-bottom: 1px solid #f1f3f5;
+            border-right: 1px solid #f1f3f5;
+            white-space: nowrap;
+        }
+
+        .phone-table td:last-child {
+            border-right: none;
+        }
+
+        .phone-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 수리통계 요약 가독성을 높이기 위한 노란 하이라이트 행 */
+        .phone-table tr.total-row td {
+            background-color: #fff9db;
+            font-weight: 700;
+        }
+
+        /* ------------------------------------------
+           [Page 2] LGSC 상세 정보 팝업 모달 스타일
+           ------------------------------------------ */
+        .lgsc-modal {
+            display: flex;
+            position: absolute;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            justify-content: center;
+            align-items: center;
+            border-radius: 16px;
+            visibility: hidden;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .lgsc-modal.visible {
+            visibility: visible;
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        .lgsc-modal .modal-content {
+            position: relative;
+            background-color: #ffffff;
+            padding: 2.5rem 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+            width: 85%;
+            max-width: 1200px;
+            max-height: 80%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .lgsc-modal .modal-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lgsc-modal .modal-section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #111111;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 10px;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lgsc-modal .modal-section-subtitle {
+            font-size: 0.9rem;
+            color: #666666;
+            font-weight: normal;
+        }
+
+        /* 팝업 내부용 고급스러운 테이블 스타일 */
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .modal-table th {
+            background-color: #f8f9fa;
+            color: #333333;
+            font-weight: 700;
+            padding: 12px 10px;
+            border-bottom: 2px solid #dee2e6;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .modal-table th:last-child {
+            border-right: none;
+        }
+
+        .modal-table td {
+            padding: 12px 10px;
+            color: #495057;
+            border-bottom: 1px solid #eee;
+            border-right: 1px solid #eee;
+            background-color: #ffffff;
+        }
+
+        .modal-table td:last-child {
+            border-right: none;
+        }
+
+        .modal-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modal-table tr:hover td {
+            background-color: #f1f3f5;
+        }
+
+        /* 이력 보기의 '보기' 링크 스타일 */
+        .link-view-history {
+            color: #111111;
+            font-weight: 700;
+            text-decoration: underline;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .link-view-history:hover {
+            color: var(--primary-color);
+        }
+
+        .lgsc-modal .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            background-color: #f1f3f5;
+            color: #333333;
+            border: none;
+            border-radius: 50%;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .lgsc-modal .close-modal:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            transform: scale(1.08);
+        }
+
+        /* -----------------------------------------
+           3페이지 모바일 UI 목업 전용 CSS
+           ----------------------------------------- */
+        .phone-contents-section {
+            padding: 12px 0 0 12px;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        .section-title-pink {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #333;
+            border-left: 4px solid #ff0055;
+            padding-left: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .horizontal-scroll-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            padding-right: 12px;
+            scrollbar-width: thin;
+            scrollbar-color: #ced4da transparent;
+            scroll-behavior: smooth;
+        }
+
+        .horizontal-scroll-chips::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .horizontal-scroll-chips::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .horizontal-scroll-chips::-webkit-scrollbar-thumb {
+            background-color: #ced4da;
+            border-radius: 4px;
+        }
+
+        .chip-item {
+            flex: 0 0 auto;
+            border: 1px solid #e1e4e8;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            cursor: pointer;
+        }
+
+        .chip-icon {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .chip-icon-doc {
+            background: #e6f3ff;
+            color: #007bff;
+        }
+
+        .chip-icon-wrench {
+            background: #f3e6ff;
+            color: #8a2be2;
+        }
+
+        .chip-icon-book {
+            background: #e6e6fa;
+            color: #483d8b;
+        }
+
+        .chip-icon-spec {
+            background: #fff4e6;
+            color: #fd7e14;
+        }
+
+        .chip-icon-flow {
+            background: #fff9db;
+            color: #fcc419;
+        }
+
+        .chip-icon-grid {
+            background: #ffe3e3;
+            color: #ff6b6b;
+        }
+
+        .chip-icon-box {
+            background: #d3f9d8;
+            color: #40c057;
+        }
+
+        .chip-icon-band {
+            background: #e6fcf5;
+            color: #20c997;
+        }
+
+        .video-section {
+            padding: 12px 0 0 12px;
+            margin-top: 10px;
+            border-top: 1px solid #f1f3f5;
+        }
+
+        .video-subtitle {
+            font-size: 0.6rem;
+            color: #868e96;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .horizontal-scroll-videos {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            padding-right: 12px;
+            scrollbar-width: none;
+        }
+
+        .horizontal-scroll-videos::-webkit-scrollbar {
+            display: none;
+        }
+
+        .video-card {
+            flex: 0 0 180px;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            background: #fff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .video-thumbnail {
+            position: relative;
+            width: 100%;
+            height: 105px;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-overlay-text {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .video-overlay-info {
+            position: absolute;
+            bottom: 4px;
+            left: 6px;
+            right: 6px;
+            color: #fff;
+            font-size: 0.55rem;
+            display: flex;
+            justify-content: space-between;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+            z-index: 1;
+        }
+
+        .video-play-btn {
+            width: 38px;
+            height: 26px;
+            background: #ff0000;
+            border-radius: 6px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            z-index: 2;
+        }
+
+        .video-title-bottom {
+            padding: 8px;
+            font-size: 0.7rem;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ai-questions-section {
+            padding: 12px;
+            margin-top: 10px;
+            border-top: 1px solid #f1f3f5;
+        }
+
+        .ai-question-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            margin-bottom: 12px;
+            font-size: 0.7rem;
+            color: #495057;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+
+        .ai-question-item:hover {
+            color: #111;
+            text-decoration: underline;
+        }
+
+        .ai-question-icon {
+            color: #868e96;
+            font-size: 0.8rem;
+            line-height: 1;
+            margin-top: 1px;
+        }
+
+        .phone-bottom-bar-new {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: #fff;
+            border-top: 1px solid #e1e4e8;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 8px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .bottom-icon {
+            font-size: 1.1rem;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        .bottom-input-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border: 1px solid #10b981;
+            border-radius: 20px;
+            padding: 0 12px;
+            height: 32px;
+        }
+
+        .bottom-input-wrap input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 0.75rem;
+            color: #333;
+        }
+
+        .bottom-input-wrap input::placeholder {
+            color: #adb5bd;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="report-container">
+        <!-- [Page 1] 기존 보고서 1페이지 전체 영역 -->
+        <div class="slide-page active" id="slide-page-1">
+            <div class="header">
+                <h1>2. Support Package 진행사항_Pilot 오픈</h1>
+            </div>
+
+            <div class="content-wrapper">
+                <!-- 좌측: 모바일 이미지 대신 HTML/CSS로 똑같이 구현한 선명한 스마트폰 화면 배치 -->
+                <div class="left-column">
+                    <div class="phone-mockup">
+                        <!-- 상단 바 -->
+                        <div class="phone-header">
+                            <div class="left">
+                                <span class="menu-icon">☰</span>
+                                <span class="badge-red-new">New</span>
+                                <span class="header-chat-title">새로운 대화</span>
+                            </div>
+                            <div class="right">
+                                <span class="qa-btn">자문 Q&amp;A <span class="badge-new-small">New</span></span>
+                                <!-- id를 부여하여 JS에서 클릭 이벤트를 등록할 기준점으로 사용 -->
+                                <span class="icon-gear" id="btn-settings" style="cursor:pointer;">⚙️</span>
+                                <span class="icon-bell">🔔</span>
+                            </div>
+
+                            <!-- ⚙️ 클릭 시 표시되는 설정 팝업 (기준점을 phone-header로 잡아 transform scale 스케일링 버그를 해결합니다.) -->
+                            <div class="settings-popup" id="settings-popup">
+                                <div class="popup-title">설정</div>
+                                <div class="popup-row">
+                                    <span class="popup-label">수리 통계</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked="">
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                                <div class="popup-row">
+                                    <span class="popup-label">이력 정보</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked="">
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                                <div class="popup-row">
+                                    <span class="popup-label">멀티턴</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="toggle-multiturn">
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                                <div class="popup-row">
+                                    <span class="popup-label">추천질문</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox">
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 서브 타이틀 바 -->
+                        <div class="phone-sub-header">
+                            <div class="left">
+                                <span class="icon-bell-small">🔔</span>
+                                <span class="sub-title-text">테스트_0020_SM</span>
+                            </div>
+                            <div class="right">
+                                <span class="icon-pause">⏸</span>
+                                <span class="page-nav">&lt; 1 / 2 &gt;</span>
+                            </div>
+                        </div>
+
+                        <div class="phone-content">
+                            <!-- 접수 정보 태그 -->
+                            <div class="issue-tag-container">
+                                <div class="issue-tag">F877AW35E.AKOR,냉동과 냉장 모두 안 됨</div>
+                                <div class="issue-time">07/07/2026, 05:14:59 PM</div>
+                            </div>
+
+                            <!-- AI 브리핑 카드 -->
+                            <div class="ai-briefing-card">
+                                <div class="card-header">
+                                    <div class="card-title">
+                                        <span class="sparkle">✨</span>
+                                        <span class="title-text">AI 브리핑</span>
+                                    </div>
+                                    <div class="card-header-btns">
+                                        <button class="voice-btn">음성 재생</button>
+                                        <button class="deep-research-btn">Deep research</button>
+                                    </div>
+                                </div>
+
+                                <div class="card-body">
+                                    <div class="section"
+                                        data-expanded-html="LE 에러 발생 시 권장하는 표준 점검 순서는 다음과 같습니다.&lt;br&gt;세탁물 과다 여부 및 이물 유입 여부 우선 확인&lt;br&gt;- 과다 적재 또는 이물로 인해 모터 부하가 발생할 경우 LE 에러가 표시될 수 있으므로, 가장 먼저 육안 점검 및 고객 사용 패턴을 확인합니다. &lt;span style=&quot;color: #1971c2; text-decoration: underline; cursor: pointer;&quot;&gt;참고1&lt;/span&gt;&lt;br&gt;&lt;br&gt;스테이터 저항값 측정&lt;br&gt;- 측정한 저항값이 규정 범위를 벗어날 경우, 모터 자체 불량으로 판단하여 모터 교체를 진행합니다.&lt;br&gt;&lt;br&gt;모터 이상이 없을 경우 PCB 점검&lt;br&gt;- 스테이터 저항값이 정상 범위일 경우, 모터보다는 PCB 제어 불량 가능성이 높으므로 MAIN PCB 교체를 권장합니다.&lt;br&gt;이와 같은 절차는 불필요한 부품 교체를 방지하고, 재방문을 줄이기 위한 표준 가이드라인입니다.&lt;br&gt;&lt;br&gt;&lt;span style=&quot;display: inline-flex; align-items: center; gap: 4px; cursor: pointer;&quot;&gt;&lt;span style=&quot;background-color: #e64980; color: #ffffff; border-radius: 3px; padding: 2px 4px; font-size: 0.6rem; font-weight: bold;&quot;&gt;📊&lt;/span&gt;&lt;span style=&quot;color: #e64980; text-decoration: underline; font-weight: bold; font-size: 0.75rem;&quot;&gt;답변통계&lt;/span&gt;&lt;/span&gt;">
+                                        <div class="section-header">
+                                            <div class="section-title">기술정보</div>
+                                            <button class="section-toggle-btn">펼치기 📤</button>
+                                        </div>
+                                        <p class="section-desc" style="display: block;">냉동실 냉기 약함은 먼저 PCB에서 하우징을 제거한 뒤
+                                            냉장실 센서 저항이 표의 값과 같은지 확인하고, 다르면 센서 문제로 120A 부품을 적용합니다. 이후 유닛을 리셋해 테스트 모드 1 또는
+                                            2를 투입한 뒤 냉동실 문을 열어 찬바람이 나오는지 확인하고, 바람이 없으면 냉동실 제어와 R Fan Motor를 점검합니다.</p>
+                                    </div>
+                                    <div class="section" data-original-text="냉동과 냉장이 모두 안 되면 전원 코드와 도어 닫힘 상태, 디스플레이의 깜빡임이나 에러 표시를 먼저 확인해
+                                        보셔야 합니다. 전원 재인가 후에도 차가운 냉기가 없거나 에러 문구가 계속 뜨면 방문 점검이 필요합니다.">
+                                        <div class="section-header">
+                                            <div class="section-title">PS 성공TIP</div>
+                                            <button class="section-toggle-btn">펼치기 📤</button>
+                                        </div>
+                                        <p class="section-desc" style="display: block;">냉동과 냉장이 모두 안 되면 전원 코드와 도어 닫힘 상태,
+                                            디스플레이의 깜빡임이나 에러 표시를 먼저 확인해
+                                            보셔야 합니다. 전원 재인가 후에도 차가운 냉기가 없거나 에러 문구가 계속 뜨면 방문 점검이 필요합니다.</p>
+                                    </div>
+                                    <div class="section" data-original-text="드럼 세탁기 LE 에러 발생 시, 부품 교체가 64%로 가장 높고 조정 수리가 10%, 설명 처리가 2%를
+                                        차지합니다. 부품 교체 중에서는 메인 PCB 교체 비율이 72%로 가장 높은 비중을 차지합니다..">
+                                        <div class="section-header">
+                                            <div class="section-title">수리 통계</div>
+                                            <button class="section-toggle-btn">펼치기 📤</button>
+                                        </div>
+                                        <p class="section-desc" style="display: block;">드럼 세탁기 LE 에러 발생 시, 부품 교체가 64%로
+                                            가장 높고
+                                            조정 수리가 10%, 설명 처리가 2%를
+                                            차지합니다. 부품 교체 중에서는 메인 PCB 교체 비율이 72%로 가장 높은 비중을 차지합니다..</p>
+                                    </div>
+                                    <div class="section" data-original-text="현재 확인 가능한 이력 정보가 없습니다.">
+                                        <div class="section-header">
+                                            <div class="section-title">이력 정보</div>
+                                            <button class="section-toggle-btn">펼치기 📤</button>
+                                        </div>
+                                        <p class="section-desc" style="display: block;">현재 확인 가능한 이력 정보가 없습니다.</p>
+                                    </div>
+                                </div>
+
+                                <div class="card-footer">
+                                    <span>내용 접기 ∧</span>
+                                </div>
+                            </div>
+
+                            <!-- 페이지 인디케이터 -->
+                            <div class="page-dots">
+                                <span class="dot active"></span>
+                                <span class="dot"></span>
+                            </div>
+
+                            <!-- 하단 단축 탭 -->
+                            <div class="shortcut-tabs">
+                                <span class="tab active">기술/매뉴얼 통합검색</span>
+                                <span class="tab">제품 스펙</span>
+                                <span class="tab">상담정보 통합검색</span>
+                                <span class="tab">응대 가...</span>
+                            </div>
+                        </div>
+
+                        <!-- 최하단 검색바 영역 -->
+                        <div class="phone-footer">
+                            <div class="grid-icon">
+                                <span></span><span></span><span></span>
+                                <span></span><span></span><span></span>
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span class="icon-camera">📷</span>
+                            <div class="search-input-wrapper">
+                                <input type="text" placeholder="무엇이든 물어보세요" disabled="">
+                                <span class="icon-mic">🎙️</span>
+                            </div>
+                            <div class="voice-wave-container">
+                                <span class="bar bar1"></span>
+                                <span class="bar bar2"></span>
+                                <span class="bar bar3"></span>
+                                <span class="bar bar4"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 우측: 가독성 높인 텍스트 정보 -->
+                <div class="right-column">
+                    <div class="main-title">
+                        ✨ AI 브리핑
+                        <div
+                            style="display: flex; flex-direction: column; margin-left: auto; align-items: flex-end; gap: 4px;">
+                            <span style="font-size: 0.95rem; font-weight: 500; color: #e60023; letter-spacing: 0;">* 답변
+                                펼치기 기능은 7월 3주차 반영 예정</span>
+                            <span style="font-size: 0.95rem; font-weight: 500; color: #e60023; letter-spacing: 0;">* 멀티턴
+                                답변 적확도는 고도화 진행중입니다</span>
+                        </div>
+                    </div>
+                    <div class="main-desc">
+                        기술 정보, PS 성공 팁, 수리 통계 및 이력 정보를 AI가 자동으로 요약하여 제공합니다.
+                    </div>
+
+                    <div class="feature-grid">
+                        <div class="feature-card" style="cursor: pointer;">
+                            <div class="feature-title">기술 정보</div>
+                            <ul class="feature-list">
+                                <li>접수된 모델 및 증상과 연관된 기술 자료를 자동으로 검색하여 제공합니다.</li>
+                                <li>서비스 매뉴얼, 기술 공지, 점검 방법 등 수리에 필요한 핵심 정보를 빠르게 확인할 수 있습니다.</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-card" style="cursor: pointer;">
+                            <div class="feature-title">PS성공TIP</div>
+                            <ul class="feature-list">
+                                <li>유사한 증상을 해결한 성공 사례를 자동으로 추천합니다.</li>
+                                <li>현장 우수 사례와 노하우를 참고하여 보다 효율적인 문제 해결이 가능합니다.</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-card" style="cursor: pointer;">
+                            <div class="feature-title">수리 통계</div>
+                            <ul class="feature-list">
+                                <li>모델과 증상 기반의 수리 데이터를 분석하여 제공합니다.</li>
+                                <li>데이터 기반으로 고장 원인을 예측하고 점검 우선순위를 결정할 수 있습니다.</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-card" style="cursor: pointer;">
+                            <div class="feature-title">이력 정보</div>
+                            <ul class="feature-list">
+                                <li>고객 전달사항, 재서비스 및 VOC 발생 유무를 제공합니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; align-items: stretch; margin-top: 1rem;">
+                        <!-- [NEW] 개인화 설명 및 설정 프리뷰 섹션 (카드형 스타일로 통일화 완료) -->
+                        <div class="personalization-section feature-card"
+                            style="cursor: pointer; flex: 1; margin-top: 0;">
+                            <div class="personalization-text">
+                                <div class="feature-title" style="display: flex; align-items: center; gap: 6px;">
+                                    개인화
+                                    <!-- 파일 유실 및 해상도 깨짐 문제를 원천 차단하기 위해 무손실 톱니바퀴 SVG 배치 -->
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7e5bef"
+                                        stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"
+                                        style="vertical-align: middle; opacity: 0.9;">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <path
+                                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <ul class="feature-list">
+                                    <li>수리 통계, 이력 정보, 멀티턴, 추천질문 항목의 노출 여부를 직접 제어할 수 있습니다.</li>
+                                    <li>사용자별 선호도에 맞춰 최적화된 챗봇 UI 환경을 구성합니다.</li>
+                                </ul>
+                            </div>
+                            <div class="personalization-preview">
+                                <div class="popup-title">설정</div>
+                                <div class="popup-row">
+                                    <span class="popup-label">수리 통계</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked="">
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                                <div class="popup-row">
+                                    <span class="popup-label">이력 정보</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked="">
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                                <div class="popup-row">
+                                    <span class="popup-label">멀티턴</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="toggle-multiturn-right">
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                                <div class="popup-row">
+                                    <span class="popup-label">추천질문</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox">
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- [NEW] 연속 문맥 유지 기능 -->
+                        <div class="feature-card"
+                            style="cursor: pointer; flex: 1; margin-top: 0; display: flex; flex-direction: column; justify-content: center;">
+                            <div class="feature-title">멀티턴 기능</div>
+                            <ul class="feature-list">
+                                <li>이전 질문에서 파악된 제품 정보 및 증상 키워드를 메모리에 유지합니다.</li>
+                                <li>엔지니어가 부품명이나 증상을 매번 다시 입력하지 않아도 흐름에 맞는 연속 처리가 가능합니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- content-wrapper 닫힘 -->
+        </div> <!-- slide-page-1 닫힘 -->
+
+        <!-- [Page 2] Pilot 주요 기능 (신규 2페이지 슬라이드 생성) -->
+        <div class="slide-page" id="slide-page-2">
+            <div class="header">
+                <h1>2. Support Package 진행사항_Pilot 오픈</h1>
+            </div>
+
+            <div class="content-wrapper">
+                <!-- 좌측: 모바일 이미지 대신 HTML/CSS로 똑같이 구현한 선명한 스마트폰 화면 배치 -->
+                <div class="left-column">
+                    <div class="phone-mockup">
+                        <!-- 상단 바 -->
+                        <div class="phone-header">
+                            <div class="left">
+                                <span class="menu-icon">☰</span>
+                                <span class="badge-red-new">New</span>
+                                <span class="header-chat-title">새로운 대화</span>
+                            </div>
+                            <div class="right">
+                                <span class="qa-btn">자문 Q&amp;A <span class="badge-new-small">New</span></span>
+                                <span class="icon-gear">⚙️</span>
+                                <span class="icon-bell">🔔</span>
+                            </div>
+                        </div>
+
+                        <!-- 서브 타이틀 바 -->
+                        <div class="phone-sub-header">
+                            <div class="left">
+                                <span class="icon-bell-small">🔔</span>
+                                <span class="sub-title-text">테스트_0020_SM</span>
+                            </div>
+                            <div class="right">
+                                <span class="icon-pause">⏸</span>
+                                <span class="page-nav">&lt; 1 / 3 &gt;</span>
+                            </div>
+                        </div>
+
+                        <div class="phone-content" style="padding: 10px; gap: 10px;">
+                            <!-- LGSC 상세 정보 카드 -->
+                            <div class="phone-card-simple" id="phone-card-lgsc">
+                                <div class="phone-card-header">
+                                    <div class="phone-card-title-group">
+                                        <div class="phone-card-logo-lg">
+                                            <div class="top-text">LG SC</div>
+                                            <div class="bottom-text">LG</div>
+                                        </div>
+                                        <span class="phone-card-title">LGSC 상세 정보</span>
+                                        <span class="phone-card-tag-green">지원팀</span>
+                                    </div>
+                                    <button class="phone-card-btn-toggle" id="btn-lgsc-expand">펼치기 ∨</button>
+                                </div>
+                                <p class="phone-card-desc" id="lgsc-card-desc">진단 이력 및 S/W 버전 정보를 확인합니다.</p>
+
+                                <!-- 펼쳐질 내부 상세 내용 (아코디언 인라인 테이블 구조) -->
+                                <div class="lgsc-detail-content" id="lgsc-detail-content"
+                                    style="display: none; border-top: 1px dashed #dee2e6; margin-top: 8px; padding-top: 10px; flex-direction: column; gap: 12px;">
+                                    <!-- 1. 진단 이력 -->
+                                    <div class="phone-card-section">
+                                        <div class="phone-card-section-title"
+                                            style="font-size: 0.68rem; font-weight: 700; color: #111; margin-bottom: 4px; text-align: left;">
+                                            1. 진단 이력</div>
+                                        <div class="phone-card-section-subtitle"
+                                            style="font-size: 0.58rem; color: #666; margin-bottom: 6px; text-align: left;">
+                                            진단 이력이 존재합니다. (3건)</div>
+                                        <div class="phone-table-container">
+                                            <table class="phone-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>접수 번호</th>
+                                                        <th>진단 일시</th>
+                                                        <th>이력 보기</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>P00000000</td>
+                                                        <td>2026-03-19 11:46:25</td>
+                                                        <td><span
+                                                                style="text-decoration: underline; font-weight: 700; cursor: pointer;">보기</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>P00000001</td>
+                                                        <td>2026-03-18 12:46:25</td>
+                                                        <td><span
+                                                                style="text-decoration: underline; font-weight: 700; cursor: pointer;">보기</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>P00000002</td>
+                                                        <td>2026-03-17 13:46:25</td>
+                                                        <td><span
+                                                                style="text-decoration: underline; font-weight: 700; cursor: pointer;">보기</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. LGSC 내장형 FOTA 이력 존재 -->
+                                    <div class="phone-card-section">
+                                        <div class="phone-card-section-title"
+                                            style="font-size: 0.68rem; font-weight: 700; color: #111; margin-bottom: 6px; text-align: left;">
+                                            2. LGSC 내장형 FOTA 이력 존재</div>
+                                        <div class="phone-table-container" style="overflow-x: auto;">
+                                            <table class="phone-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>접수 번호</th>
+                                                        <th>진단 일시</th>
+                                                        <th>부품 번호</th>
+                                                        <th>체크섬(이전)</th>
+                                                        <th>체크섬(이후)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>P00000000</td>
+                                                        <td>2026-03-19 11:46:25</td>
+                                                        <td>SAA00000000</td>
+                                                        <td>0&times;00001212</td>
+                                                        <td style="font-weight: 700;">0&times;00001221</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>P00000001</td>
+                                                        <td>2026-03-18 12:46:25</td>
+                                                        <td>SAA00000001</td>
+                                                        <td>0&times;00001213</td>
+                                                        <td style="font-weight: 700;">0&times;00001224</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- 3. 최신 S/W 버전 정보(LGSC) -->
+                                    <div class="phone-card-section">
+                                        <div class="phone-card-section-title"
+                                            style="font-size: 0.68rem; font-weight: 700; color: #111; margin-bottom: 6px; text-align: left;">
+                                            3. 최신 S/W 버전 정보(LGSC)</div>
+                                        <div class="phone-table-container">
+                                            <table class="phone-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>접수 번호</th>
+                                                        <th>진단 일시</th>
+                                                        <th>부품 번호</th>
+                                                        <th>체크섬</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>P00000000</td>
+                                                        <td>2026-03-19 11:46:25</td>
+                                                        <td>SAA00000000</td>
+                                                        <td>0&times;00001221</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>P00000001</td>
+                                                        <td>2026-03-18 12:46:25</td>
+                                                        <td>SAA00000001</td>
+                                                        <td>0&times;00001224</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> <!-- phone-card-lgsc 닫힘 -->
+
+                            <!-- Argus 카드 -->
+                            <div class="phone-card-simple" id="phone-card-argus">
+                                <div class="phone-card-header">
+                                    <div class="phone-card-title-group">
+                                        <div class="phone-card-logo-argus">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff"
+                                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3" fill="#ffffff"></circle>
+                                            </svg>
+                                        </div>
+                                        <span class="phone-card-title">Argus</span>
+                                        <span class="phone-card-tag-green">지원팀</span>
+                                    </div>
+                                </div>
+                                <span class="phone-card-tag-pink">AI 진단 결과 요약</span>
+                                <div class="phone-card-desc" style="font-weight: 700; color: #111;">4도어 냉장고
+                                    (M623GNN392.AKOR)</div>
+                                <p class="phone-card-desc">냉동실 온도 이상 상승 확인, 팬 모터 점검 필요</p>
+                                <div class="phone-card-desc" style="font-size: 0.6rem; color: #adb5bd;">2026-03-26
+                                    12:46:25</div>
+                            </div>
+
+                            <!-- 통계 정보 카드 -->
+                            <div class="phone-card-simple" id="phone-card-stats">
+                                <div class="phone-card-info-title">통계 정보</div>
+                                <div class="phone-table-container">
+                                    <table class="phone-table">
+                                        <thead>
+                                            <tr>
+                                                <th>고장원인</th>
+                                                <th>비중</th>
+                                                <th>부품</th>
+                                                <th>조정</th>
+                                                <th>설명</th>
+                                                <th>방문/취소</th>
+                                                <th>비용</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="total-row">
+                                                <td>소계</td>
+                                                <td>77%</td>
+                                                <td>11%</td>
+                                                <td>47%</td>
+                                                <td>19%</td>
+                                                <td>-</td>
+                                                <td>-</td>
+                                            </tr>
+                                            <tr>
+                                                <td>건조약/도어틈</td>
+                                                <td>39%</td>
+                                                <td>7%</td>
+                                                <td>24%</td>
+                                                <td>7%</td>
+                                                <td>-</td>
+                                                <td>83,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>기능미숙/설정미숙</td>
+                                                <td>25%</td>
+                                                <td>1%</td>
+                                                <td>13%</td>
+                                                <td>11%</td>
+                                                <td>-</td>
+                                                <td>72,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>메인보드</td>
+                                                <td>14%</td>
+                                                <td>3%</td>
+                                                <td>10%</td>
+                                                <td>1%</td>
+                                                <td>-</td>
+                                                <td>103,000</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- 증상별 부품 TOP10 카드 -->
+                            <div class="phone-card-simple" id="phone-card-top10">
+                                <div class="phone-card-info-title">증상별 부품 TOP10</div>
+                                <div class="phone-table-container">
+                                    <table class="phone-table">
+                                        <thead>
+                                            <tr>
+                                                <th>부품명</th>
+                                                <th>부품 번호</th>
+                                                <th>수량</th>
+                                                <th>단가</th>
+                                                <th>재고</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td
+                                                    style="text-decoration: underline; font-weight: 700; text-align: left; padding-left: 6px;">
+                                                    Pure Chem,R-600A</td>
+                                                <td>RAC30248901 <span
+                                                        style="cursor: pointer; font-size: 0.5rem; opacity: 0.65; vertical-align: middle;">📋</span>
+                                                </td>
+                                                <td>193 (22%)</td>
+                                                <td>6,500</td>
+                                                <td>12</td>
+                                            </tr>
+                                            <tr>
+                                                <td
+                                                    style="text-decoration: underline; font-weight: 700; text-align: left; padding-left: 6px;">
+                                                    Compressor,Assy</td>
+                                                <td>AQM30077035 <span
+                                                        style="cursor: pointer; font-size: 0.5rem; opacity: 0.65; vertical-align: middle;">📋</span>
+                                                </td>
+                                                <td>107 (12%)</td>
+                                                <td>341,000</td>
+                                                <td>4</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 최하단 검색바 영역 -->
+                        <div class="phone-footer">
+                            <div class="grid-icon">
+                                <span></span><span></span><span></span>
+                                <span></span><span></span><span></span>
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span class="icon-camera">📷</span>
+                            <div class="search-input-wrapper">
+                                <input type="text" placeholder="무엇이든 물어보세요..." disabled="">
+                                <span class="icon-mic">🎙️</span>
+                            </div>
+                            <div class="voice-wave-container">
+                                <span class="bar bar1"></span>
+                                <span class="bar bar2"></span>
+                                <span class="bar bar3"></span>
+                                <span class="bar bar4"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 우측: 가독성 높인 텍스트 정보 -->
+                <div class="right-column">
+
+                    <div class="feature-grid">
+                        <div class="feature-card" style="cursor: pointer;">
+                            <div class="feature-title">LGSC</div>
+                            <ul class="feature-list">
+                                <li>제품 진단 이력, FOTA 이력 및 S/W 버전 정보를 통합 조회하여 제품 상태와 조치 이력을 신속하게 확인 가능</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-card" style="cursor: pointer;">
+                            <div class="feature-title">Argus</div>
+                            <ul class="feature-list">
+                                <li>AI 기반 진단 결과와 분석 요약 정보를 제공하여 고장 원인 및 이상 유무 확인</li>
+                            </ul>
+                            <div
+                                style="font-size: 0.9rem; font-weight: 500; color: #e60023; margin-top: 0.8rem; margin-left: 0.2rem;">
+                                * ~8월 AI 요약 반영 예정</div>
+                        </div>
+
+                        <div class="feature-card" style="cursor: pointer;">
+                            <div class="feature-title">통계 정보</div>
+                            <ul class="feature-list">
+                                <li>접수 모델별 증상 발생 현황에 대한 통계 정보를 제공하며, 예상 수리비 확인등 확인</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-card" style="cursor: pointer;">
+                            <div class="feature-title">증상별 부품 TOP10</div>
+                            <ul class="feature-list">
+                                <li>접수 모델 및 증상 기반의 주요 교체 부품 TOP10 정보 제공</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.85rem; font-weight: 500; color: #e60023; margin-top: 1rem; margin-left: 0.5rem;">
+                        * 부품통계, 증상별 부품 TOP10 &rarr; 부품주문하기 기능 7월4주차 반영
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- [Page 3] 멀티턴 상세 가이드 (기존 2페이지를 3페이지로 보존) -->
+        <div class="slide-page" id="slide-page-3">
+            <div class="header">
+                <h1>3. Support Package 진행사항_멀티턴 가이드</h1>
+            </div>
+
+            <div class="content-wrapper"
+                style="gap: 2.5rem; display: flex; flex: 1; height: calc(100% - 100px); justify-content: space-between; align-items: stretch; margin-top: 1rem;">
+                <!-- 좌측: 모바일 이미지 대신 멀티턴.png 대조 화면을 크게 보여주어 완성도 극대화 -->
+                <div class="left-column"
+                    style="flex: 0 0 54%; background-color: #f8f9fa; padding: 12px; border-radius: 16px; border: 1px solid #e9ecef; display: flex; justify-content: center; align-items: center; box-sizing: border-box; overflow: hidden; height: 100%;">
+
+                    <div class="phone-mockup" style="position: relative;">
+                        <!-- 상단 바 -->
+                        <div class="phone-header" style="justify-content: space-between; padding: 12px 10px;">
+                            <div class="left" style="display: flex; align-items: center; gap: 8px;">
+                                <span
+                                    style="font-size: 1.2rem; cursor: pointer; font-weight:bold; color: #333;">☰</span>
+                                <div
+                                    style="display: flex; align-items: center; background: #fff; border: 1px solid #e1e4e8; border-radius: 16px; padding: 2px 8px; gap: 4px; cursor: pointer;">
+                                    <span
+                                        style="background: #e60023; color: #fff; font-size: 0.55rem; padding: 2px 5px; border-radius: 10px; font-weight: bold;">New</span>
+                                    <span style="font-size: 0.65rem; font-weight: 700; color: #222;">새 대화</span>
+                                </div>
+                                <div
+                                    style="display: flex; align-items: center; background: #fff; border: 1px solid #e1e4e8; border-radius: 16px; padding: 2px 8px; gap: 4px; cursor: pointer;">
+                                    <span style="font-size: 0.7rem; color: #868e96;">🏳️</span>
+                                    <span style="font-size: 0.65rem; font-weight: 700; color: #222;">자문 Q&A</span>
+                                </div>
+                            </div>
+                            <div class="right" style="display: flex; gap: 8px;">
+                                <span style="font-size: 1.1rem; cursor: pointer;">⚙️</span>
+                                <span style="font-size: 1.1rem; cursor: pointer;">🔔</span>
+                            </div>
+                        </div>
+
+                        <!-- 스크롤 본문 -->
+                        <div style="flex: 1; overflow-y: auto; padding-bottom: 60px; background-color: #ffffff;">
+                            <!-- 콘텐츠 섹션 -->
+                            <div class="phone-contents-section">
+                                <div class="section-title-pink">콘텐츠</div>
+                                <div class="horizontal-scroll-chips" id="chips-container">
+                                    <div class="chip-item">
+                                        <div class="chip-icon chip-icon-doc">📄</div>
+                                        기술 정보 7 &gt;
+                                    </div>
+                                    <div class="chip-item">
+                                        <div class="chip-icon chip-icon-wrench">🔧</div>
+                                        서비스 매뉴얼 1 &gt;
+                                    </div>
+                                    <div class="chip-item">
+                                        <div class="chip-icon chip-icon-book">📖</div>
+                                        사용설명서 3 &gt;
+                                    </div>
+                                    <div class="chip-item">
+                                        <div class="chip-icon chip-icon-spec">📝</div>
+                                        스펙 &gt;
+                                    </div>
+                                    <div class="chip-item">
+                                        <div class="chip-icon chip-icon-flow">⑂</div>
+                                        회로도 &gt;
+                                    </div>
+                                    <div class="chip-item">
+                                        <div class="chip-icon chip-icon-grid">🧩</div>
+                                        분해도 &gt;
+                                    </div>
+                                    <div class="chip-item">
+                                        <div class="chip-icon chip-icon-box">🧰</div>
+                                        자가 해결 콘텐츠 &gt;
+                                    </div>
+                                    <div class="chip-item">
+                                        <div class="chip-icon chip-icon-band">🩹</div>
+                                        증상별 수리 가이드 &gt;
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Videos 섹션 -->
+                            <div class="video-section">
+                                <div class="section-title-pink">Videos</div>
+                                <div class="video-subtitle">영상이 안 보이면 제목 클릭 후 보안 인증을 진행해 주세요. (예: EP ID@lge.com)</div>
+                                <div class="horizontal-scroll-videos">
+                                    <div class="video-card"
+                                        onclick="window.open('https://youtu.be/WZ5OPu_wz9E', '_blank')">
+                                        <div class="video-thumbnail">
+                                            <div class="video-overlay-text">LG 냉장고 냉동실 상부이...</div>
+                                            <div class="video-play-btn">▶</div>
+                                            <div class="video-overlay-info">
+                                                <span>0:02 / 2:07</span>
+                                                <span>조회수 14</span>
+                                            </div>
+                                        </div>
+                                        <div class="video-title-bottom">LG 냉장고 냉동실 상부이...</div>
+                                    </div>
+                                    <div class="video-card">
+                                        <div class="video-thumbnail">
+                                            <div class="video-overlay-text">냉장고(G647GBB38)...</div>
+                                            <div class="video-play-btn">▶</div>
+                                            <div class="video-overlay-info">
+                                                <span>0:02 / 2:07</span>
+                                                <span>조회수 14</span>
+                                            </div>
+                                        </div>
+                                        <div class="video-title-bottom">냉장고(G647GBB38)...</div>
+                                    </div>
+                                    <div class="video-card">
+                                        <div class="video-thumbnail">
+                                            <div class="video-overlay-text">일반냉장고(D604ME...</div>
+                                            <div class="video-play-btn">▶</div>
+                                            <div class="video-overlay-info">
+                                                <span>0:03 / 5:18</span>
+                                                <span>조회수 11</span>
+                                            </div>
+                                        </div>
+                                        <div class="video-title-bottom">일반냉장고(D604ME...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI 추천 질문 섹션 -->
+                            <div class="ai-questions-section">
+                                <div class="section-title-pink">AI 추천 질문</div>
+                                <div class="ai-question-item">
+                                    <span class="ai-question-icon">❔</span>
+                                    <span>드럼 세탁기 LE 에러 발생 시 원인과 해결 방법은 무엇인가요?</span>
+                                </div>
+                                <div class="ai-question-item">
+                                    <span style="color: transparent; width: 0.8rem; display: inline-block;"></span>
+                                    <span>드럼 세탁기 메인 PCB 점검 방법을 알려주세요.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 하단 입력창 -->
+                        <div class="phone-bottom-bar-new">
+                            <span class="bottom-icon">▦</span>
+                            <span class="bottom-icon">📷</span>
+                            <div class="bottom-input-wrap">
+                                <input type="text" placeholder="무엇이든 물어보세요...">
+                                <span style="color:#adb5bd; font-size: 0.8rem; cursor:pointer;">▼</span>
+                                <span
+                                    style="color:#adb5bd; font-size: 0.8rem; margin-left: 4px; cursor:pointer;">🎤</span>
+                            </div>
+                            <span class="bottom-icon" style="font-weight: bold;">|||</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 우측: 멀티턴 상세 기능 가이드 설명 카드 (디자인 일관성 유지) -->
+                <div class="right-column"
+                    style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 1rem; box-sizing: border-box; height: 100%;">
+                    <div class="main-title">💬 멀티턴 대화 가이드</div>
+                    <div class="main-desc" style="font-size: 0.95rem; line-height: 1.6; color: #495057;">
+                        기본 답변의 단조로움을 해소하고, 대화의 문맥(Context)을 이해하여 연속적인 질의에 대응하는 스마트 멀티턴 UI의 핵심 상세 화면입니다.
+                    </div>
+
+                    <div class="feature-grid" style="grid-template-columns: 1fr; gap: 1rem;">
+                        <div class="feature-card" style="padding: 1.2rem;">
+                            <div class="feature-title">연속 문맥 유지 기능</div>
+                            <ul class="feature-list" style="margin-top: 0.6rem; font-size: 0.85rem;">
+                                <li>이전 질문에서 파악된 제품 정보 및 증상 키워드를 메모리에 유지합니다.</li>
+                                <li>엔지니어가 부품명이나 증상을 매번 다시 입력하지 않아도 흐름에 맞는 연속 처리가 가능합니다.</li>
+                            </ul>
+                        </div>
+
+                        <div class="feature-card" style="padding: 1.2rem;">
+                            <div class="feature-title">비교화면 핵심 정보</div>
+                            <ul class="feature-list" style="margin-top: 0.6rem; font-size: 0.85rem;">
+                                <li><b>좌측(기본 답변)</b>: 접수한 세탁기 LE 에러 분석 정보가 단순 나열형으로 표출됩니다.</li>
+                                <li><b>우측(멀티턴)</b>: 냉장고 FF 에러 확인 사항 및 펜 모터 전압 기준 정보 등 연속 질의 이력이 챗봇 화면에 대화형으로 흐르며 축적됩니다.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 이전장 넘어가는 화살표 버튼 (2페이지에서 활성화) -->
+        <div class="prev-page-arrow" id="btn-prev-page" style="display: none;">
+            <svg width="24" height="48" viewBox="0 0 24 48" fill="none" stroke="#222222" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 4 24 20 42"></polyline>
+            </svg>
+        </div>
+        <!-- 다음장 넘어가는 화살표 버튼 (1페이지에서 활성화) -->
+        <div class="next-page-arrow" id="btn-next-page">
+            <svg width="24" height="48" viewBox="0 0 24 48" fill="none" stroke="#222222" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="4 6 20 24 4 42"></polyline>
+            </svg>
+        </div>
+
+        <!-- 멀티턴 가이드 이미지 모달 팝업 (1600x900 내부에 absolute로 배치하여 transform scale 버그 해결) -->
+        <div id="multiturn-modal" class="multiturn-modal">
+            <div class="modal-content">
+                <span class="close-modal" id="close-multiturn-modal">&times;</span>
+                <img src="멀티턴.png" alt="멀티턴 가이드 화면">
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <script>
+        // 전역 디버깅 에러 알리미 추가 (오동작 실시간 모니터링)
+        window.onerror = function (message, source, lineno, colno, error) {
+            alert("자바스크립트 에러 감지!\n메시지: " + message + "\n위치: " + lineno + "라인");
+        };
+
+        // 로드 완료 후 각 인터랙션 엘리먼트들이 정확히 잡히는지 자가 진단 수행
+        window.addEventListener('load', function () {
+            const toggleMultiturn = document.getElementById('toggle-multiturn');
+            const toggleMultiturnRight = document.getElementById('toggle-multiturn-right');
+            const multiturnModal = document.getElementById('multiturn-modal');
+
+            console.log("멀티턴 팝업 연동 디버깅 정보:", {
+                toggleMultiturn: !!toggleMultiturn,
+                toggleMultiturnRight: !!toggleMultiturnRight,
+                multiturnModal: !!multiturnModal
+            });
+
+            if (!toggleMultiturn || !toggleMultiturnRight || !multiturnModal) {
+                alert("시스템 경고: 멀티턴 연동에 필요한 HTML 요소를 브라우저가 찾지 못했습니다.\n" +
+                    "- 설정 토글 존재여부: " + (toggleMultiturn ? "O" : "X") + "\n" +
+                    "- 개인화 토글 존재여부: " + (toggleMultiturnRight ? "O" : "X") + "\n" +
+                    "- 팝업 모달 존재여부: " + (multiturnModal ? "O" : "X"));
+            }
+        });
+
+        // F11 키 입력 또는 화면 더블클릭을 감지하여 보고서를 전체화면으로 토글합니다.
+        // 브라우저 자체 F11 동작은 브라우저 윈도우만 전체화면으로 만들어 레이아웃이 꽉 차지 않으므로,
+        // HTML5 Fullscreen API를 사용해 보고서 컨테이너(.report-container)만 모니터 화면 전체에 꽉 차게 띄웁니다.
+        const reportContainer = document.querySelector('.report-container');
+
+        // 보고서의 기준 디자인 해상도 (16:9 비율의 기본 크기)
+        const baseWidth = 1600;
+        const baseHeight = 900;
+
+        // 전체 화면 모드 및 일반 창 크기 전체에 비례하여 자동으로 보고서 크기(Scale)를 맞추어 잘림과 찌그러짐을 해결합니다.
+        function adjustScale() {
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            // 가로와 세로 비율 중 더 작아서 잘리지 않는 축을 기준으로 확대/축소 비율을 구합니다.
+            const scaleX = windowWidth / baseWidth;
+            const scaleY = windowHeight / baseHeight;
+            const scale = Math.min(scaleX, scaleY);
+
+            // 보고서 전체 컨테이너를 기준 해상도로 유지하면서 뷰포트 크기에 연동해 transform 스케일링합니다.
+            reportContainer.style.width = `${baseWidth}px`;
+            reportContainer.style.height = `${baseHeight}px`;
+            reportContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            reportContainer.style.transformOrigin = 'center center';
+        }
+
+        // 페이지 최초 로드 시점, 전체 리소스 로드 시점 및 실시간 창 크기 변경(resize) 시 반응형으로 작동
+        adjustScale(); // 스크립트 실행 시 즉각 실행
+        window.addEventListener('DOMContentLoaded', adjustScale);
+        window.addEventListener('load', adjustScale);
+        window.addEventListener('resize', adjustScale);
+
+        // 전체화면 상태 변경 시에도 비율 재조정
+        document.addEventListener('fullscreenchange', adjustScale);
+        document.addEventListener('webkitfullscreenchange', adjustScale);
+        document.addEventListener('mozfullscreenchange', adjustScale);
+        document.addEventListener('MSFullscreenChange', adjustScale);
+
+        function toggleFullscreen() {
+            // 크로스 브라우저 호환성을 고려한 전체화면 상태 체크
+            const isFullscreen = document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement;
+
+            if (!isFullscreen) {
+                // 전체화면 요청 (크로스 브라우저 대응)
+                const docEl = document.documentElement;
+                const requestFS = docEl.requestFullscreen ||
+                    docEl.webkitRequestFullscreen ||
+                    docEl.mozRequestFullScreen ||
+                    docEl.msRequestFullscreen;
+
+                if (requestFS) {
+                    requestFS.call(docEl).catch(function (err) {
+                        // 사용자 액션(포커스)이 없거나 보안 정책으로 막혔을 때 발생하는 예외 상황을 처리합니다.
+                        console.error("전체화면 진입 실패:", err);
+                        alert("전체화면 모드로 진입하려면 페이지 내 빈 곳을 마우스로 '한 번 클릭'한 후 F11을 다시 눌러주세요.\n(또는 화면의 빈 곳을 '더블클릭'하면 확실하게 전체화면이 됩니다.)");
+                    });
+                }
+            } else {
+                // 전체화면 해제 (크로스 브라우저 대응)
+                const exitFS = document.exitFullscreen ||
+                    document.webkitExitFullscreen ||
+                    document.mozCancelFullScreen ||
+                    document.msExitFullscreen;
+
+                if (exitFS) {
+                    exitFS.call(document).catch(function (err) {
+                        console.error("전체화면 해제 실패:", err);
+                    });
+                }
+            }
+        }
+
+        // 1. 키보드 F11 입력 감지
+        window.addEventListener('keydown', function (event) {
+            if (event.key === 'F11') {
+                event.preventDefault(); // 크롬 등 브라우저 자체의 F11 단축키 창 전체화면 동작을 방지합니다.
+                toggleFullscreen();
+            }
+        });
+
+        // 2. 마우스 더블클릭 감지 (사용자 제스처가 100% 보장되므로 보안 차단 없이 확실하게 동작하는 대안입니다.)
+        window.addEventListener('dblclick', function (event) {
+            // 클릭한 대상이 입력창이나 버튼 등이 아닐 때만 전체화면을 토글합니다.
+            const target = event.target;
+            if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && target.tagName !== 'BUTTON') {
+                toggleFullscreen();
+            }
+        });
+
+        // 3. 브라우저 전체화면 상태 전환 및 창 크기 변경에 따른 스케일링 이벤트 바인딩
+        document.addEventListener('fullscreenchange', adjustScale);
+        document.addEventListener('webkitfullscreenchange', adjustScale);
+        document.addEventListener('mozfullscreenchange', adjustScale);
+        document.addEventListener('MSFullscreenChange', adjustScale);
+        window.addEventListener('resize', adjustScale);
+
+        // 4. 모바일 목업 내 각 섹션의 접기/펼치기 버튼 토글 및 AI 답변 스트리밍 효과 처리
+
+        // 각 섹션별로 돌고 있는 타이핑 타이머 ID를 추적하고 관리하기 위한 맵
+        const typingTimers = new Map();
+
+        // 페이지 로딩 즉시 모든 섹션의 원본 설명 텍스트를 안전하게 백업(캐싱)만 진행합니다.
+        // 처음 화면을 열었을 때 글씨가 바로 노출되도록 닫힘 초기화 단계를 거치지 않습니다.
+        document.querySelectorAll('.section').forEach(function (section) {
+            const desc = section.querySelector('.section-desc');
+            if (desc) {
+                // 오리지널 텍스트 백업
+                if (section.hasAttribute('data-is-html')) {
+                    section.setAttribute('data-original-html', desc.innerHTML.trim());
+                } else {
+                    section.setAttribute('data-original-text', desc.textContent.trim());
+                }
+            }
+        });
+
+        document.querySelectorAll('.section-toggle-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const section = this.closest('.section');
+                const desc = section.querySelector('.section-desc');
+                const originalText = section.getAttribute('data-original-text');
+                const expandedHtml = section.getAttribute('data-expanded-html');
+
+                // 해당 섹션에서 작동 중이던 이전 타이핑 프로세스가 있다면 중복 실행을 막기 위해 강제 종료합니다.
+                if (typingTimers.has(section)) {
+                    clearInterval(typingTimers.get(section));
+                    typingTimers.delete(section);
+                }
+
+                if (expandedHtml) {
+                    if (section.getAttribute('data-state') === 'expanded') {
+                        section.setAttribute('data-state', 'summary');
+                        desc.innerHTML = section.getAttribute('data-original-text');
+                        this.innerHTML = '펼치기 📤';
+                    } else {
+                        section.setAttribute('data-state', 'expanded');
+                        desc.style.display = 'block';
+                        desc.innerHTML = '';
+                        this.innerHTML = '내용 접기 📥';
+
+                        let index = 0;
+                        let currentHtml = "";
+                        const phoneContent = document.querySelector('.phone-content');
+
+                        const timerId = setInterval(function () {
+                            if (index < expandedHtml.length) {
+                                if (expandedHtml.charAt(index) === '<') {
+                                    const tagEnd = expandedHtml.indexOf('>', index);
+                                    if (tagEnd !== -1) {
+                                        currentHtml += expandedHtml.substring(index, tagEnd + 1);
+                                        index = tagEnd + 1;
+                                    } else {
+                                        currentHtml += expandedHtml.charAt(index);
+                                        index++;
+                                    }
+                                } else {
+                                    currentHtml += expandedHtml.charAt(index);
+                                    index++;
+                                }
+                                desc.innerHTML = currentHtml;
+                                phoneContent.scrollTop = phoneContent.scrollHeight;
+                            } else {
+                                clearInterval(timerId);
+                                typingTimers.delete(section);
+                            }
+                        }, 8);
+                        typingTimers.set(section, timerId);
+                    }
+                    return;
+                }
+
+                // 현재 본문이 열려있는 상태라면 -> 즉시 접고 글자 비우기
+                if (desc.style.display !== 'none') {
+                    desc.style.display = 'none';
+                    desc.textContent = '';
+                    this.innerHTML = '펼치기 📥';
+                }
+                // 현재 본문이 접혀있는 상태라면 -> 펼치면서 한 글자씩 타이핑(스트리밍) 연출 실행
+                else {
+                    desc.style.display = 'block';
+                    this.innerHTML = '펼치기 📤';
+
+                    const phoneContent = document.querySelector('.phone-content');
+
+                    if (section.hasAttribute('data-is-html')) {
+                        desc.innerHTML = section.getAttribute('data-original-html');
+                        phoneContent.scrollTop = phoneContent.scrollHeight;
+                    } else {
+                        desc.textContent = ''; // 빈 도화지 상태에서 타이핑 시작
+                        let index = 0;
+
+                        const timerId = setInterval(function () {
+                            if (index < originalText.length) {
+                                desc.textContent += originalText.charAt(index);
+                                index++;
+
+                                // 글자가 추가됨에 따라 스마트폰 화면의 스크롤을 실시간으로 아래로 당겨주어 챗봇 뷰포트를 일치시킵니다.
+                                phoneContent.scrollTop = phoneContent.scrollHeight;
+                            } else {
+                                // 타이핑 완료 시 타이머 해제
+                                clearInterval(timerId);
+                                typingTimers.delete(section);
+                            }
+                        }, 12); // 12ms 간격으로 한 글자씩 써내려가 실시간 인공지능 스트리밍 효과 연출
+
+                        typingTimers.set(section, timerId);
+                    }
+                }
+            });
+        });
+
+        // 5. Deep research 버튼 클릭 시 전체 답변 실시간 동시 스트리밍 연출 작동
+        const deepResearchBtn = document.querySelector('.deep-research-btn');
+        if (deepResearchBtn) {
+            deepResearchBtn.addEventListener('click', function () {
+                // 현재 개별적으로 돌아가던 타이머가 있다면 충돌 방지를 위해 전부 강제 종료합니다.
+                typingTimers.forEach(function (timerId) {
+                    clearInterval(timerId);
+                });
+                typingTimers.clear();
+
+                const phoneContent = document.querySelector('.phone-content');
+
+                // 모바일 폰 내부의 모든 섹션 데이터를 가져와 동시에 실시간 타이핑 시작
+                document.querySelectorAll('.section').forEach(function (section) {
+                    const desc = section.querySelector('.section-desc');
+                    const btn = section.querySelector('.section-toggle-btn');
+                    const originalText = section.getAttribute('data-original-text');
+                    const expandedHtml = section.getAttribute('data-expanded-html');
+                    const isHtml = section.hasAttribute('data-is-html');
+
+                    if (desc && (originalText || isHtml || expandedHtml)) {
+                        // 1. 설명 텍스트 칸을 비우고 보이게 설정
+                        desc.style.display = 'block';
+
+                        // 2. 항목 우측 토글 단추를 '접기' 상태로 전환
+                        if (btn) {
+                            btn.innerHTML = expandedHtml ? '내용 접기 📥' : '펼치기 📤';
+                        }
+
+                        if (expandedHtml) {
+                            section.setAttribute('data-state', 'expanded');
+                            desc.innerHTML = '';
+                            let index = 0;
+                            let currentHtml = "";
+                            const timerId = setInterval(function () {
+                                if (index < expandedHtml.length) {
+                                    if (expandedHtml.charAt(index) === '<') {
+                                        const tagEnd = expandedHtml.indexOf('>', index);
+                                        if (tagEnd !== -1) {
+                                            currentHtml += expandedHtml.substring(index, tagEnd + 1);
+                                            index = tagEnd + 1;
+                                        } else {
+                                            currentHtml += expandedHtml.charAt(index);
+                                            index++;
+                                        }
+                                    } else {
+                                        currentHtml += expandedHtml.charAt(index);
+                                        index++;
+                                    }
+                                    desc.innerHTML = currentHtml;
+                                    phoneContent.scrollTop = phoneContent.scrollHeight;
+                                } else {
+                                    clearInterval(timerId);
+                                    typingTimers.delete(section);
+                                }
+                            }, 8);
+                            typingTimers.set(section, timerId);
+                        } else if (isHtml) {
+                            desc.innerHTML = section.getAttribute('data-original-html');
+                            phoneContent.scrollTop = phoneContent.scrollHeight;
+                        } else {
+                            desc.textContent = '';
+                            // 3. 10ms의 일정한 딜레이로 텍스트 스트리밍 답변 연출 시작
+                            let index = 0;
+                            const timerId = setInterval(function () {
+                                if (index < originalText.length) {
+                                    desc.textContent += originalText.charAt(index);
+                                    index++;
+
+                                    // 글자가 추가될 때 스크롤 포커스를 지속적으로 하단에 자동 동기화
+                                    phoneContent.scrollTop = phoneContent.scrollHeight;
+                                } else {
+                                    clearInterval(timerId);
+                                    typingTimers.delete(section);
+                                }
+                            }, 10); // 조금 더 쾌적하게 10ms 단위 속도로 타이핑
+
+                            typingTimers.set(section, timerId);
+                        }
+                    }
+                });
+            });
+        }
+
+        // 6. [Page 1] 우측 feature-card 클릭 시 좌측 폰의 매칭되는 section 확대/축소 연동
+        const featureCardsPage1 = document.querySelectorAll('#slide-page-1 .feature-card');
+        const phoneSectionsPage1 = document.querySelectorAll('#slide-page-1 .phone-mockup .section');
+
+        // 10. [Page 2] LGSC 상세 정보 카드 내부 접기/펼치기 제어
+        const btnLgscExpand = document.getElementById('btn-lgsc-expand');
+        const lgscDetailContent = document.getElementById('lgsc-detail-content');
+        const lgscCardDesc = document.getElementById('lgsc-card-desc');
+
+        if (btnLgscExpand && lgscDetailContent) {
+            btnLgscExpand.addEventListener('click', function (event) {
+                event.stopPropagation(); // 부모 엘리먼트 카드 클릭 이벤트 전파 차단
+
+                const isExpanded = lgscDetailContent.style.display !== 'none';
+                if (isExpanded) {
+                    lgscDetailContent.style.display = 'none';
+                    if (lgscCardDesc) lgscCardDesc.style.display = 'block';
+                    btnLgscExpand.innerHTML = '펼치기 ∨';
+                    btnLgscExpand.style.backgroundColor = '#f1f3f5';
+                } else {
+                    lgscDetailContent.style.display = 'flex';
+                    if (lgscCardDesc) lgscCardDesc.style.display = 'none';
+                    btnLgscExpand.innerHTML = '접기 ∧';
+                    btnLgscExpand.style.backgroundColor = '#e9ecef';
+                }
+            });
+        }
+        featureCardsPage1.forEach(function (card, index) {
+            card.style.cursor = 'pointer';
+
+            card.addEventListener('click', function () {
+                const targetSection = phoneSectionsPage1[index];
+                if (!targetSection) return;
+
+                const desc = targetSection.querySelector('.section-desc');
+                const btn = targetSection.querySelector('.section-toggle-btn');
+                const originalText = targetSection.getAttribute('data-original-text');
+
+                if (targetSection.classList.contains('highlighted')) {
+                    targetSection.classList.remove('highlighted');
+                } else {
+                    phoneSectionsPage1.forEach(function (sec) {
+                        sec.classList.remove('highlighted');
+                    });
+
+                    targetSection.classList.add('highlighted');
+
+                    const phoneContent = document.querySelector('#slide-page-1 .phone-content');
+                    if (phoneContent) {
+                        phoneContent.scrollTo({
+                            top: targetSection.offsetTop - phoneContent.offsetTop - 10,
+                            behavior: 'smooth'
+                        });
+                    }
+
+                    if (desc && originalText) {
+                        // 타이핑을 타지 않고 즉시 원본 텍스트를 한 번에 다 채워 띄웁니다.
+                        if (btn) {
+                            btn.innerHTML = '펼치기 📤';
+                        }
+                        if (typingTimers.has(targetSection)) {
+                            clearInterval(typingTimers.get(targetSection));
+                            typingTimers.delete(targetSection);
+                        }
+                        desc.style.display = 'block';
+                        desc.textContent = originalText;
+                        if (btn) {
+                            btn.innerHTML = '펼치기 📤';
+                        }
+                    }
+                }
+            });
+        });
+
+        // 6-2. [Page 2] 우측 feature-card 클릭 시 좌측 폰의 매칭되는 카드 확대/축소 연동
+        const featureCardsPage2 = document.querySelectorAll('#slide-page-2 .feature-card');
+        const phoneCardsPage2 = document.querySelectorAll('#slide-page-2 .phone-mockup .phone-card-simple');
+
+        featureCardsPage2.forEach(function (card, index) {
+            card.style.cursor = 'pointer';
+
+            card.addEventListener('click', function () {
+                const targetCard = phoneCardsPage2[index];
+                if (!targetCard) return;
+
+                if (targetCard.classList.contains('highlighted')) {
+                    targetCard.classList.remove('highlighted');
+                } else {
+                    phoneCardsPage2.forEach(function (c) {
+                        c.classList.remove('highlighted');
+                    });
+
+                    targetCard.classList.add('highlighted');
+
+                    const phoneContent = document.querySelector('#slide-page-2 .phone-content');
+                    if (phoneContent) {
+                        phoneContent.scrollTo({
+                            top: targetCard.offsetTop - phoneContent.offsetTop - 10,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+
+        // 7. 슬라이드 페이지 (1 ~ 3페이지) 전환 연동
+        const slidePages = [
+            document.getElementById('slide-page-1'),
+            document.getElementById('slide-page-2'),
+            document.getElementById('slide-page-3')
+        ];
+        const btnPrevPage = document.getElementById('btn-prev-page');
+        const btnNextPage = document.getElementById('btn-next-page');
+        let currentPage = 1;
+        const totalPages = 3;
+
+        function updatePages() {
+            slidePages.forEach((page, idx) => {
+                if (page) {
+                    if (idx + 1 === currentPage) {
+                        page.classList.add('active');
+                    } else {
+                        page.classList.remove('active');
+                    }
+                }
+            });
+
+            // 이전/다음 화살표 표시 제어
+            if (btnPrevPage) {
+                btnPrevPage.style.display = currentPage === 1 ? 'none' : 'block';
+            }
+            if (btnNextPage) {
+                btnNextPage.style.display = currentPage === totalPages ? 'none' : 'block';
+            }
+        }
+
+        if (btnNextPage) {
+            btnNextPage.addEventListener('click', function () {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updatePages();
+                }
+            });
+        }
+        if (btnPrevPage) {
+            btnPrevPage.addEventListener('click', function () {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updatePages();
+                }
+            });
+        }
+
+        // 초기화
+        updatePages();
+
+        // 8. ⚙️ 설정 버튼 클릭 시 설정 팝업 토글 (absolute + CSS 상대좌표 고정)
+        const btnSettings = document.getElementById('btn-settings');
+        const settingsPopup = document.getElementById('settings-popup');
+
+        if (btnSettings && settingsPopup) {
+            // 설정 아이콘 클릭: 팝업 토글
+            btnSettings.addEventListener('click', function (event) {
+                // 이벤트 버블링 차단 - 아래 document 클릭 리스너가 즉시 닫히지 않도록 방지
+                event.stopPropagation();
+                settingsPopup.classList.toggle('visible');
+            });
+
+            // 팝업 내부 클릭은 닫히지 않도록 버블링 차단
+            settingsPopup.addEventListener('click', function (event) {
+                event.stopPropagation();
+            });
+
+            // 팝업 외부(문서 어디든) 클릭 시 팝업 자동 닫힘 처리
+            document.addEventListener('click', function () {
+                settingsPopup.classList.remove('visible');
+            });
+        }
+
+        // 9. 멀티턴 토글 스위치 및 모달 제어 (설정 팝업과 우측 하단 개인화 영역 동시 바인딩 및 동기화)
+        const toggleMultiturn = document.getElementById('toggle-multiturn');
+        const toggleMultiturnRight = document.getElementById('toggle-multiturn-right');
+        const multiturnModal = document.getElementById('multiturn-modal');
+        const closeMultiturnModal = document.getElementById('close-multiturn-modal');
+
+        // 상태를 동기화하고 모달 상태를 조절하는 헬퍼 함수
+        function updateMultiturnState(checked) {
+            console.log("updateMultiturnState called, checked:", checked);
+            if (toggleMultiturn) toggleMultiturn.checked = checked;
+            if (toggleMultiturnRight) toggleMultiturnRight.checked = checked;
+
+            if (multiturnModal) {
+                if (checked) {
+                    multiturnModal.classList.add('visible');
+                    // 이미지 팝업이 뜰 때 화면을 가리는 설정 팝업을 자동으로 닫아줍니다.
+                    if (settingsPopup) {
+                        settingsPopup.classList.remove('visible');
+                    }
+                } else {
+                    multiturnModal.classList.remove('visible');
+                }
+            }
+        }
+
+        // 9-1. 설정 팝업 내 토글 제어
+        if (toggleMultiturn) {
+            toggleMultiturn.addEventListener('click', function (event) {
+                event.stopPropagation(); // ⚙️ 버튼이 닫히는 이벤트 방지
+            });
+            toggleMultiturn.addEventListener('change', function () {
+                updateMultiturnState(this.checked);
+            });
+        }
+
+        // 9-2. 우측 하단 개인화 프리뷰 내 토글 제어
+        if (toggleMultiturnRight) {
+            // 토글 스위치 및 내부 구성요소 클릭 시 부모 카드(.personalization-section)로의 클릭 전파를 철저히 차단
+            const wrapperSwitch = toggleMultiturnRight.closest('.toggle-switch');
+            if (wrapperSwitch) {
+                wrapperSwitch.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+            }
+            toggleMultiturnRight.addEventListener('click', function (event) {
+                event.stopPropagation();
+            });
+            toggleMultiturnRight.addEventListener('change', function () {
+                updateMultiturnState(this.checked);
+            });
+        }
+
+        // 9-3. 모달 제어 (닫기 및 외부 영역 클릭)
+        if (multiturnModal) {
+            // 모달 닫기 버튼 클릭 시
+            if (closeMultiturnModal) {
+                closeMultiturnModal.addEventListener('click', function () {
+                    updateMultiturnState(false);
+                });
+            }
+
+            // 모달 배경(어두운 영역) 클릭 시 닫기
+            multiturnModal.addEventListener('click', function (event) {
+                if (event.target === multiturnModal) {
+                    updateMultiturnState(false);
+                }
+            });
+        }
+
+
+
+    </script>
+</body>
+
+</html>
